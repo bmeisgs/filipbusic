@@ -1,10 +1,15 @@
 let int = 2;
 let boolean = true;
-let string = "I have no fu**ing time";
+let string = "IBO";
 
 let array = [int, boolean, string];
 
 let object = {int: int, boolean: boolean, string: string};
 
-console.log(array);
-console.log(object);
+for (i=2;i>-1;i--){
+    console.log(array[i]);
+}
+
+for (i=0;i<3;i++){
+    console.log(Object.keys(object)[i] + ':' + Object.values(object)[i]);
+}
