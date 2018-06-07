@@ -11,5 +11,5 @@ for (i=2;i>-1;i--){
 }
 
 for (i=0;i<3;i++){
-    console.log(Object.keys(object)[i] + ':' + Object.values(object)[i]);
+    console.log(Object.keys(object)[i] + ' : ' + object[Object.keys(object)[i]]);
 }
