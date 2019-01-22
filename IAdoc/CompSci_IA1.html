@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Password Manager</title>
+
+	<!-- Bootstrap CSS -->
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+	
+	<!-- Bootstrap JS -->
+	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+
+	<link rel="stylesheet" type="text/css" href="CompSci_IA_CSS.css">
+
+	<!-- Firebase-->
+	<script src="https://www.gstatic.com/firebasejs/5.7.2/firebase.js"></script>
+	<script>
+	// Initialize Firebase
+	var config = {
+		apiKey: "AIzaSyBt71Qd9Y9B56iua99Khs41NQxthxuysXc",
+		authDomain: "compsciia-f176a.firebaseapp.com",
+		databaseURL: "https://compsciia-f176a.firebaseio.com",
+		projectId: "compsciia-f176a",
+		storageBucket: "compsciia-f176a.appspot.com",
+		messagingSenderId: "567193459229"
+	};
+	firebase.initializeApp(config);
+
+
+	//Initialize Firebase Database
+	firebase.initializeApp({
+		apiKey: 'AIzaSyBt71Qd9Y9B56iua99Khs41NQxthxuysXc',
+		authDomain: 'compsciia-f176a.firebaseapp.com',
+		projectId: 'compsciia-f176a'
+	});
+
+	// Initialize Cloud Firestore through Firebase
+	var db = firebase.firestore();
+
+	// Disable deprecated features
+	db.settings({
+		timestampsInSnapshots: true
+	});
+	</script>
+
+	<script>
+		signOut();
+		
+		function createUser(email, password){
+			firebase.auth().createUserWithEmailAndPassword(email, password).catch(function(error) {
+			// Handle Errors here.
+			var errorCode = error.code;
+			var errorMessage = error.message;
+			// ...
+			
+			});
+		}
+
+		function signIn(){
+			var email = $("#email").val();
+			var pwd = $("#pwd").val();
+			console.log("trying to log in",email,pwd);
+			firebase.auth().signInWithEmailAndPassword(email, pwd).catch(function(error) {
+				// Handle Errors here.
+				var errorCode = error.code;
+				var errorMessage = "This is an error";
+				// ...
+			});
+				
+		}
+
+		function signOut(){
+			firebase.auth().signOut().then(function() {
+  			// Sign-out successful.
+			}).catch(function(error) {
+  			// An error happened.
+			});
+		}
+
+
+		$(document).ready(function() {
+			$("#button_signin").on("click", function(ev){ 
+				console.log("login clicked");
+				ev.preventDefault(); 
+				signIn(); 
+			});
+
+		});
+
+		firebase.auth().onAuthStateChanged(function(user) {
+			if (user) {
+				console.log("user signed in");
+				document.getElementById("signin").style.display='none';
+				var name = user.displayName;
+				var email = user.email;
+				
+				
+			} else {
+			// No user is signed in.
+			}
+		});
+
+
+		db.collection("users").add({
+			first: "Filip",
+			last: "Busic",
+			email: "filipbusic1@gmail.com",
+			encryptedData: "dafkasjfk",
+		})
+		.then(function(docRef) {
+			console.log("Document written with ID: ", docRef.id);
+		})
+		.catch(function(error) {
+			console.error("Error adding document: ", error);
+		});
+
+	</script>
+
+</head>
+<body>
+	<div>
+	<nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+	  <ul class="navbar-nav">
+		<li class="nav-item">
+		  <a class="navbar-brand" href="#">OnlyPass</a>
+		</li>
+	  </ul>
+	</nav>
+	</div>
+	
+	
+	<br>
+	<div class="container">
+		<h1 style="text-align:center">Password Manager</h1>
+		<p>Welcome to OnlyPass! Please sign in or create an account.</p>
+	</div>
+	<br>
+	<div class="container">
+		<button class="btn btn-success" onclick="document.getElementById('register').style.display='block'">Create an account</button>
+	</div>	
+	
+	<br><br>
+	<div class="container">
+		<button class="btn btn-primary" onclick="document.getElementById('signin').style.display='block'">Sign in</button>
+	</div>
+	
+	
+	
+	<!-- Create an account screen-->
+	<div class="modal" id="register">
+		<form class="modal-content animate" method="post" onsubmit="createUser(document.getElementById('email'),document.getElementById('pwd'));">
+			<br>
+			<div class="container">
+				<div class="form-group">
+				<label for="firstName">First Name:</label>
+				<input type="text" class="form-control" id="firstName" required>
+				</div>
+				<div class="form-group">
+				<label for="lastName">Last Name:</label>
+				<input type="text" class="form-control" id="lastName">
+				</div>
+				<div class="form-group">
+				<label for="dob">Date of birth:</label>
+				<input type="date" class="form-control" id="dob" required>
+				</div>
+				<div class="form-group">
+				<label for="email">Email address:</label>
+				<input type="email" class="form-control" id="email2" required>
+				</div>
+				<div class="form-group">
+				<label for="email">Confirm email address:</label>
+				<input type="email" class="form-control" id="cemail" required>
+				</div>
+				<div class="form-group">
+				<label for="pwd">Password:</label>
+				<input type="password" class="form-control" id="pwd2" required>
+				</div>
+				<div class="form-group">
+				<label for="pwd">Confirm password:</label>
+				<input type="password" class="form-control" id="cpwd" required>
+				</div>
+				<div class="checkbox">
+				<label><input type="checkbox" required> I have read the Terms and Conditions and agree to them.</label>
+				</div>
+				<div class="checkbox">
+				<label><input type="checkbox"> You may send me occasional promotional material.</label>
+				</div>
+			</div>
+			<br>
+
+		<div style="background-color:#f1f1f1; padding: 16px;">
+		  <button type="button" onclick="document.getElementById('register').style.display='none'" class="btn btn-danger">Cancel</button>
+		  <button type="submit" style="float:right" class="btn btn-success">Create an account</button>
+		</div>
+		
+	  </form>
+	</div>
+
+	<script>
+		// Get the modal
+		var modalRegister = document.getElementById('register');
+
+		// When the user clicks anywhere outside of the modal, close it
+		window.onclick = function(event) {
+			if (event.target == modalRegister) {
+				modalRegister.style.display = "none";
+			}
+		}
+	</script>
+	
+
+
+
+
+	
+	
+	<!-- Sign in screen-->
+	<div class="modal" id="signin">
+		<form class="modal-content animate" method="post" onsubmit="signIn();">
+			<br>
+			<div class="container">
+				<div class="form-group">
+				<label for="email">Email address:</label>
+				<input type="email" class="form-control" id="email" required>
+				</div>
+				<div class="form-group">
+				<label for="pwd">Password:</label>
+				<input type="password" class="form-control" id="pwd" required>
+				</div>
+				<div class="checkbox">
+				<label><input type="checkbox"> Remember me</label>
+				</div>
+			</div>
+			<br>
+
+		<div style="background-color:#f1f1f1; padding: 16px;">
+		  <button type="button" onclick="document.getElementById('signin').style.display='none'" class="btn btn-danger">Cancel</button>
+		  <button type="button" style="float:right" class="btn btn-primary" id="button_signin">Sign in</button> 
+		</div>
+		
+	  </form>
+	</div>
+
+	<!-- test -->
+	<div id="test">
+
+	</div> 
+
+	<script>
+		// Get the modal
+		var modal = document.getElementById('signin');
+
+		// When the user clicks anywhere outside of the modal, close it
+		window.onclick = function(event) {
+			if (event.target == modal) {
+				modal.style.display = "none";
+			}
+		}
+	</script>
+	
+	
+
+</body>
+</html> 

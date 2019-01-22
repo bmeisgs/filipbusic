@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Password Manager</title>
+
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+	<!-- jQuery library -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+	<!-- Latest compiled JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> 
+
+	<!-- Link to my stylesheet -->
+	<link rel="stylesheet" type="text/css" href="CompSci_IA_CSS.css">
+	
+	<!-- AES Encryption in Javascript -->
+	<script type="text/javascript" src="https://cdn.rawgit.com/ricmoo/aes-js/e27b99df/index.js"></script>
+	
+	<!-- Password to key -->
+	<script src="https://raw.githubusercontent.com/ricmoo/scrypt-js/master/scrypt.js" type="text/javascript"></script>
+ 
+</head>
+<body>
+
+
+	<br>
+	<div class="container">
+		<form>
+			<input id="b" type="text" class="form-control" value="The plaintext should go here">
+			<br>
+		</form>
+		<button class="btn btn-primary" onclick="encrypt(document.getElementById('b').value);">Encrypt</button>
+		<br><br>
+		<p id="a"></p>
+		<br><br>
+		<form>
+			<input id="encrypted_text" type="text" class="form-control" value="testing">
+			<br>
+		</form>
+		<button class="btn btn-success" onclick="decrypt(document.getElementById('encrypted_text').value);">Decrypt</button>
+		<br><br>
+		<p id="decrypted_text"></p>
+		<br><br>
+		<button class="btn btn-danger" onclick="getKey();">Get key</button>
+		<br><br>
+		<p id="output_key"></p>
+
+		
+	</div>
+
+	<script>
+	//encrypts the plaintext
+	function encrypt(plaintext) {
+
+		// An example 128-bit key (16 bytes * 8 bits/byte = 128 bits)
+		var key = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 ];
+
+		// Convert text to bytes
+		var text = plaintext;
+		var textBytes = aesjs.utils.utf8.toBytes(text);
+
+		// The counter is optional, and if omitted will begin at 1
+		var aesCtr = new aesjs.ModeOfOperation.ctr(key, new aesjs.Counter(5));
+		var encryptedBytes = aesCtr.encrypt(textBytes);
+
+		// To print or store the binary data, you may convert it to hex
+		var encryptedHex = aesjs.utils.hex.fromBytes(encryptedBytes);
+		console.log(encryptedHex);
+		// "a338eda3874ed884b6199150d36f49988c90f5c47fe7792b0cf8c7f77eeffd87
+		//  ea145b73e82aefcf2076f881c88879e4e25b1d7b24ba2788"
+		document.getElementById('a').innerHTML=encryptedHex;
+	}
+	
+	//decrypts into plaintext
+	function decrypt(input){
+		var key = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 ];
+		var encryptedBytes = aesjs.utils.hex.toBytes(input);
+		
+		// The counter mode of operation maintains internal state, so to
+		// decrypt a new instance must be instantiated.
+		var aesCtr = new aesjs.ModeOfOperation.ctr(key, new aesjs.Counter(5));
+		var decryptedBytes = aesCtr.decrypt(encryptedBytes);
+
+		// Convert our bytes back into text
+		var decryptedText = aesjs.utils.utf8.fromBytes(decryptedBytes);
+		console.log(decryptedText);
+		// "Text may be any length you wish, no padding is required."
+		document.getElementById('decrypted_text').innerHTML=decryptedText;
+	}
+	</script>
+	
+	<!-- end of working section -->
+
+	
+	
+	
+	<!-- These two libraries are highly recommended for encoding password/salt -->
+    <script src="libs/buffer.js" type="text/javascript"></script> 
+    <script src="libs/unorm.js" type="text/javascript"></script> 
+ 
+    <!-- This shim library greatly improves performance of the scrypt algorithm -->
+    <script src="libs/setImmediate.js" type="text/javascript"></script> 
+ 
+    <script src="index.js" type="text/javascript"></script> 
+    <script type="text/javascript">
+ 
+      // See the section below: "Encoding Notes"
+      var password = new buffer.SlowBuffer("anyPassword".normalize('NFKC'));
+      var salt = new buffer.SlowBuffer("someSalt".normalize('NFKC'));
+	
+      var N = 1024, r = 8, p = 1;
+      var dkLen = 32;
+		
+      scrypt(password, salt, N, r, p, dkLen, function(error, progress, key) {
+        if (error) {
+          console.log("Error: " + error);
+ 
+        } else if (key) {
+          console.log("Found: " + key);
+ 
+        } else {
+          // update UI with progress complete
+          updateInterface(progress);
+        }
+      });
+	  document.getElementById('output_key').innerHTML="partial success";
+    </script> 
+	 
+	
+</body>
+</html>
