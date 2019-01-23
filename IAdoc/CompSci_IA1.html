@@ -60,17 +60,42 @@
 	//Sign out if already signed in
 	signOut();
 	
-
+	var newUser = false;
 	//Create a user
-	function createUser(email, password){
-		firebase.auth().createUserWithEmailAndPassword(email, password).catch(function(error) {
+	function createUser(){
+		var email = $("#email2").val();
+		var pwd = $('#pwd2').val();
+		if (pwd !== $('#cpwd').val()){
+			alert("Passwords don't match!");
+			return;
+		} else if (pwd.length < 8) {
+			alert("Password is too short!");
+			return;
+		} else if (pwd.includes(0||1||2||3||4||5||6||7||8||9) === false){
+			alert("Password must include a number!");
+			return;
+		}
+
+		
+
+		console.log("trying to create user");
+		newUser = true;
+		
+		firebase.auth().createUserWithEmailAndPassword(email, pwd).catch(function(error) {
 		// Handle Errors here.
+		
 		var errorCode = error.code;
 		var errorMessage = error.message;
+		console.log("error creating user");
+		alert(errorMessage);
+		return;
 		// ...
 		
 		});
-	}
+		
+		}
+		
+	
 
 	//Sign in an existing user
 	function signIn(){
@@ -79,11 +104,12 @@
 		console.log("trying to log in",email,pwd);
 		firebase.auth().signInWithEmailAndPassword(email, pwd).catch(function(error) {
 			// Handle Errors here.
+			alert("Incorrect username or password");
 			var errorCode = error.code;
 			var errorMessage = "This is an error";
-			// ...
-		});
 			
+			// ...
+		});			
 	}
 
 
@@ -107,11 +133,55 @@
 
 	});
 
+	//Make it so the form isn't submitted when the Create an Account button is clicked, but createUser() is run instead
+	$(document).ready(function() {
+		$("#button_register").on("click", function(ev){ 
+			console.log("register clicked");
+			ev.preventDefault(); 
+			createUser(); 
+		});
+
+	});
+
+
+/*
+	$(document).ready(function() {
+	document.getElementById('pwd').onkeydown = function(event) {
+		if (event.keyCode == 13) {
+			signIn();
+		}
+	}
+	});
+*/
+
+	var signInOpen = false;
+	function openSignIn(){
+		document.getElementById('signin').style.display='block';
+		signInOpen = true;
+			
+			// detect enter keypress
+			$(document).keypress(function(e) {
+				var keycode = (e.keyCode ? e.keyCode : e.which);
+				if (keycode == '13') {
+					if (signInOpen === true){
+						signIn();
+					}
+				}
+			});
+	}
+
+
+	//Set the background of the main page
+	$(document).ready(function() {
+		$('body').css('background-image', 'url(background1.jpg)');
+	});
+
 
 	//Do this when a user signs in
 	var userId = null;
 	firebase.auth().onAuthStateChanged(function(user) {
 		if (user) {
+			if (newUser === false){
 			console.log("user signed in");
 			document.getElementById("signin").style.display='none';
 			document.getElementById("firstScreen").style.display='none';
@@ -119,6 +189,7 @@
 			document.getElementById("intro").style.display='heading';
 			document.getElementById("secondScreen").style.display='inline';
 			document.getElementById("encryption_buttons").style.display='inline';
+			$('body').css('background-image', '');
 
 			var name = user.displayName;
 			var email = user.email;
@@ -186,9 +257,66 @@
 			
 			
 
+		} else {
+			console.log("User successfully created");
 
+
+			userId = user.uid;
+			console.log(userId);
+			var email = user.email;
+			console.log(email);
+			db.collection("users").doc(userId).set({
+				uid: userId,
+				email: email,
+				encrypted_data: "",
+				
+			})
+			.then(function() {
+				console.log("Document successfully written!");
+				signOut();
+				closeRegister();
+				alert('Thank you for creating an OnlyPass account. Please sign in.');
+			})
+			.catch(function(error) {
+				console.error("Error writing document: ", error);
+			});
+
+			 
+		}
 		} else {
 		// No user is signed in.
+			
+		}
+	});
+
+	
+	function closeSignIn(){
+		var modal = document.getElementById('signin');
+		modal.style.display = "none";
+		signInOpen = false;
+	}
+
+	function closeRegister(){
+		var modal = document.getElementById('register');
+		modal.style.display = "none";
+		
+	}
+
+
+	$(document).ready(function() {
+		// Get the REGISTER modal
+		var modalRegister = document.getElementById('register');
+		// Get the SIGN IN modal
+		var modalSignIn = document.getElementById('signin');
+
+		// When the user clicks anywhere outside of the open modals, close them
+		window.onclick = function(event) {
+			if (event.target == modalRegister) {
+				modalRegister.style.display = "none";
+			} else if (event.target == modalSignIn) {
+				modalSignIn.style.display = "none";
+				closeSignIn();
+			}
 		}
 	});
 
@@ -245,6 +373,12 @@
 		rowNumber--;
 		console.log(passwords);
 
+	}
+
+
+	function editEntry(row){
+		var table = document.getElementById('password_list');
+		var row = table
 	}
 
 	var stringPasswords = "";
@@ -374,7 +508,7 @@
 </head>
 
 
-<body background="background1.jpg">
+<body id="body">
 	<div>
 	<nav class="navbar navbar-expand-sm bg-dark navbar-dark">
 	  <ul class="navbar-nav">
@@ -403,7 +537,7 @@
 	
 	<br><br>
 	<div class="container">
-		<button id="signin_main" class="btn btn-primary" onclick="document.getElementById('signin').style.display='block'">Sign in</button>
+		<button id="signin_main" class="btn btn-primary" onclick="openSignIn();">Sign in</button>
 	</div>
 	</div>
 	</div>
@@ -453,22 +587,14 @@
 
 		<div style="background-color:#f1f1f1; padding: 16px;">
 		  <button type="button" onclick="document.getElementById('register').style.display='none'" class="btn btn-danger">Cancel</button>
-		  <button type="submit" style="float:right" class="btn btn-success">Create an account</button>
+		  <button type="submit" style="float:right" class="btn btn-success" id="button_register">Create an account</button>
 		</div>
 		
 	  </form>
 	</div>
 
 	<script>
-		// Get the modal
-		var modalRegister = document.getElementById('register');
-
-		// When the user clicks anywhere outside of the modal, close it
-		window.onclick = function(event) {
-			if (event.target == modalRegister) {
-				modalRegister.style.display = "none";
-			}
-		}
+		
 	</script>
 	
 
@@ -483,6 +609,7 @@
 			<br>
 			<div class="container">
 				<div class="form-group">
+				<br>
 				<label for="email">Email address:</label>
 				<input type="email" class="form-control" id="email" required>
 				</div>
@@ -497,7 +624,7 @@
 			<br>
 
 		<div style="background-color:#f1f1f1; padding: 16px;">
-		  <button type="button" onclick="document.getElementById('signin').style.display='none'" class="btn btn-danger">Cancel</button>
+		  <button type="button" onclick="closeSignIn();" class="btn btn-danger">Cancel</button>
 		  <button type="button" style="float:right" class="btn btn-primary" id="button_signin">Sign in</button> 
 		</div>
 		
@@ -510,15 +637,7 @@
 	</div> 
 
 	<script>
-		// Get the modal
-		var modal = document.getElementById('signin');
-
-		// When the user clicks anywhere outside of the modal, close it
-		window.onclick = function(event) {
-			if (event.target == modal) {
-				modal.style.display = "none";
-			}
-		}
+		
 	</script>
 	
 
