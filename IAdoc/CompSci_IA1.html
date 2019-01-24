@@ -71,10 +71,17 @@
 		} else if (pwd.length < 8) {
 			alert("Password is too short!");
 			return;
-		} else if (pwd.includes(0||1||2||3||4||5||6||7||8||9) === false){
+		} else if (pwd.match(/\d/) === null){
 			alert("Password must include a number!");
 			return;
+		} else if (pwd.match(/\D/) === null) {
+			alert("Password must include a letter");
+			return;			
+		} else if ($('#terms').is(':checked') === false) {
+			alert("You must accept the Terms and Conditions!");
+			return;
 		}
+		console.log($('#terms'));
 
 		
 
@@ -88,6 +95,7 @@
 		var errorMessage = error.message;
 		console.log("error creating user");
 		alert(errorMessage);
+		newUser = false;
 		return;
 		// ...
 		
@@ -275,6 +283,7 @@
 				console.log("Document successfully written!");
 				signOut();
 				closeRegister();
+				newUser = false;
 				alert('Thank you for creating an OnlyPass account. Please sign in.');
 			})
 			.catch(function(error) {
@@ -549,24 +558,8 @@
 			<br>
 			<div class="container">
 				<div class="form-group">
-				<label for="firstName">First Name:</label>
-				<input type="text" class="form-control" id="firstName" required>
-				</div>
-				<div class="form-group">
-				<label for="lastName">Last Name:</label>
-				<input type="text" class="form-control" id="lastName">
-				</div>
-				<div class="form-group">
-				<label for="dob">Date of birth:</label>
-				<input type="date" class="form-control" id="dob" required>
-				</div>
-				<div class="form-group">
 				<label for="email">Email address:</label>
 				<input type="email" class="form-control" id="email2" required>
-				</div>
-				<div class="form-group">
-				<label for="email">Confirm email address:</label>
-				<input type="email" class="form-control" id="cemail" required>
 				</div>
 				<div class="form-group">
 				<label for="pwd">Password:</label>
@@ -577,7 +570,7 @@
 				<input type="password" class="form-control" id="cpwd" required>
 				</div>
 				<div class="checkbox">
-				<label><input type="checkbox" required> I have read the Terms and Conditions and agree to them.</label>
+				<label><input type="checkbox" id="terms"> I have read the Terms and Conditions and agree to them.</label>
 				</div>
 				<div class="checkbox">
 				<label><input type="checkbox"> You may send me occasional promotional material.</label>
