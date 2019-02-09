@@ -88,3 +88,13 @@
 
 	/* #background1 { background-image:url(background1.jpg) }
 */
+
+	.error {
+		display:none;
+		color: rgb(255,0,0);
+	}
+
+	#save_status { font-size: 13px; }
+	#save_status.nochange { color: #aaa; }
+	#save_status.pending { color: #a00; }
+	#save_status.saved { color: #0a0; }
