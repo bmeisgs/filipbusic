@@ -85,6 +85,7 @@ function createUser(){
     console.log("error creating user");
     alert(errorMessage);
     newUser = false;
+    //ADD SUCCESS MESSAGE
     return;
     // ...
     
