@@ -80,30 +80,26 @@
 	
 	
 	<div id="firstScreen">
-	<br>
-	
-	<div class="container main-window">
-		
-		<h1 id="heading" class="">One password, unlimited possibilities</h1>
 		<br>
-		<p id="intro" class="">Welcome to OnlyPass! Please sign in or create an account.</p>
-	
-	<br>
-	<div class="container">
-		<button id="register_main" class="btn btn-success" onclick="document.getElementById('register').style.display='block'">Create an account</button>
-	</div>	
-	
-	<br><br>
-	<div class="container">
-		<button id="signin_main" class="btn btn-primary" onclick="openSignIn();">Sign in</button>
-	</div>
-	</div>
+		<div class="container main-window">
+			<h1 id="heading" class="">One password, unlimited possibilities</h1>
+			<br>
+			<p id="intro" class="">Welcome to OnlyPass! Please sign in or create an account.</p>
+			<br>
+			<div class="container">
+				<button id="register_main" class="btn btn-success" onclick="document.getElementById('register').style.display='block'">Create an account</button>
+			</div>	
+			<br><br>
+			<div class="container">
+				<button id="signin_main" class="btn btn-primary" onclick="openSignIn();">Sign in</button>
+			</div>
+		</div>
 	</div>
 	
 	
 	<!-- Create an account screen-->
 	<div class="modal" id="register">
-		<form class="modal-content animate" onsubmit="createUser(document.getElementById('email'),document.getElementById('pwd'));">
+		<form class="modal-content animate">
 			<br>
 			<div class="container">
 				<div class="form-group">
@@ -148,7 +144,7 @@
 	
 	<!-- Sign in screen-->
 	<div class="modal" id="signin">
-		<form class="modal-content animate" method="post" onsubmit="signIn();">
+		<form class="modal-content animate">
 			<br>
 			<div class="container">
 				<div class="form-group">
