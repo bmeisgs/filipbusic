@@ -98,3 +98,29 @@
 	#save_status.nochange { color: #aaa; }
 	#save_status.pending { color: #a00; }
 	#save_status.saved { color: #0a0; }
+
+	.password-list-screen {
+		display: none;
+	}
+
+	.btn-light {
+		background-color: white;
+	}
+	
+	.password::before {
+		position: absolute;
+		background: white;
+		content: "********************************";
+	}
+
+	.temp-visible {
+
+	}
+
+	.button-cell {
+		width: 50px;
+	}
+
+	.sure {
+		width: 40%;
+	}
