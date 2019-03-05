@@ -1,5 +1,9 @@
 //START OF CODE 
 
+// Initialize tooltips
+$(document).ready(function() {
+    $("body").tooltip({ selector: '[data-toggle=tooltip]' });
+});
 
 
 // Initialize Firebase
@@ -225,8 +229,8 @@ function generatePassword(length) {
 
 
 //This is what the edit and remove buttons should look like
-var buttonEdit = "<button class='btn btn-light edit'><i class='far fa-edit'></i></button>";
-var buttonRemove = "<button class='btn btn-light delete'><i class='fas fa-trash-alt'></i></button>";
+var buttonEdit = "<button class='btn btn-light edit' data-toggle='tooltip' data-placement='bottom' title='Edit'><i class='far fa-edit'></i></button>";
+var buttonRemove = "<button class='btn btn-light delete' data-toggle='tooltip' data-placement='bottom' title='Delete'><i class='fas fa-trash-alt'></i></button>";
 
 //This variable is used to keep track of which row the user is attempting to delete, so that when the user presses the trash icon
 //they can be asked to double check whether they wish to delete, and the deletion can then proceed correctly.
@@ -284,7 +288,7 @@ firebase.auth().onAuthStateChanged(function(user) {
                     var row = table.insertRow(rowNumber);
                     row.id = "row" + rowNumber;
                     rowNumber++;
-                    var cell0 = row.insertCell(0); //document.createElement('td');
+                    var cell0 = row.insertCell(0);
                     var cell1 = row.insertCell(1);
                     var cell2 = row.insertCell(2);
                     var cell3 = row.insertCell(3);
@@ -298,7 +302,7 @@ firebase.auth().onAuthStateChanged(function(user) {
                     cell2.innerHTML = currentDate;
                     cell3.innerHTML = "<span class='editable password'>"+passwords[i].password+"</span>";
                     cell4.innerHTML = "<button class='btn btn-light eye'><i class='fas fa-eye'></i></button>";
-                    cell5.innerHTML = "<button class='btn btn-light copy' data-clipboard-text='" + passwords[i].password + "'><i class='far fa-copy'></i></button>";
+                    cell5.innerHTML = "<button class='btn btn-light copy' data-toggle='tooltip' data-trigger='focus' data-placement='bottom' title='Copied' data-clipboard-text='" + passwords[i].password + "'><i class='far fa-copy'></i></button>";
                     cell6.innerHTML = "<button class='btn btn-light generate'><i class='fas fa-random'></i></button>";
                     cell7.innerHTML = buttonEdit;
                     cell8.innerHTML = buttonRemove;
