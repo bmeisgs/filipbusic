@@ -2,9 +2,14 @@
 
 // Initialize tooltips
 $(document).ready(function() {
-    $("body").tooltip({ selector: '[data-toggle=tooltip]' });
+    //$(document).tooltip({ selector: '#pwd2', trigger: 'focus', container: 'body', title: 'Testing testing', placement: 'bottom'});
+    $('html').tooltip({ selector: '.delete', trigger: 'hover', container: 'body', title: 'Delete', placement: 'bottom'});
+    $('body').tooltip({ selector: '.copy', trigger: 'focus', container: 'body', title: 'Copied to clipboard', placement: 'bottom', delay: { "show": 0, "hide": 500 }});
+    $('div').tooltip({ selector: '.generate', trigger: 'focus', container: 'body', title: 'Randomly generated new password', placement: 'bottom', delay: { "show": 0, "hide": 500 }});
+    $(function () {
+        $('[data-toggle="popover"]').popover();
+      })
 });
-
 
 // Initialize Firebase
 var config = {
@@ -46,6 +51,13 @@ function hideErrorsOnRegister(){
     $("#error_number").css('display','none');
     $("#error_letter").css('display','none');
     $("#error_terms").css('display','none');
+}
+
+function hideErrorsOnChangePass(){
+    $("#error_short2").css('display','none');
+    $("#error_match2").css('display','none');
+    $("#error_number2").css('display','none');
+    $("#error_letter2").css('display','none');
 }
 
 var newUser = false;
@@ -94,8 +106,7 @@ function createUser(){
     return;
     // ...
     
-    });
-    
+    });  
     }
 
     
@@ -187,33 +198,15 @@ $(document).ready(function() {
     $('body').css('background-image', 'url(background1.jpg)');
 });
 
+//Ask the user if they want to leave without saving changes
+window.addEventListener("beforeunload", function(event) {
+    if ($(".save").length > 0){
+        event.preventDefault();
+    }
+});
 
 
 //Function to generate a random password
-function generatePass(plength){
-
-    var keylistalpha="abcdefghijklmnopqrstuvwxyz";
-    var keylistint="123456789";
-    var keylistspec="!@#_";
-    var temp='';
-    var len = plength/2;
-    var len = len - 1;
-    var lenspec = plength-len-len;
-
-    for (i=0;i<len;i++)
-        temp+=keylistalpha.charAt(Math.floor(Math.random()*keylistalpha.length));
-
-    for (i=0;i<lenspec;i++)
-        temp+=keylistspec.charAt(Math.floor(Math.random()*keylistspec.length));
-
-    for (i=0;i<len;i++)
-        temp+=keylistint.charAt(Math.floor(Math.random()*keylistint.length));
-
-        temp=temp.split('').sort(function(){return 0.5-Math.random()}).join('');
-
-    return temp;
-}
-
 function generatePassword(length) {
 	var password = '', character; 
 	while (length > password.length) {
@@ -225,12 +218,40 @@ function generatePassword(length) {
 }
 
 
+function listPasswords(){
+    for (i = 0; i < passwords.length; i++){
+
+        var table = document.getElementById('password_list');
+        var row = table.insertRow(rowNumber);
+        row.id = "row" + rowNumber;
+        rowNumber++;
+        var cell0 = row.insertCell(0);
+        var cell1 = row.insertCell(1);
+        var cell2 = row.insertCell(2);
+        var cell3 = row.insertCell(3);
+        var cell4 = row.insertCell(4);
+        var cell5 = row.insertCell(5);
+        var cell6 = row.insertCell(6);
+        var cell7 = row.insertCell(7);
+        var cell8 = row.insertCell(8);
+        cell0.innerHTML = "<span class='editable'>"+passwords[i].name+"</span>";
+        cell1.innerHTML = "<span class='editable'>"+passwords[i].website+"</span>";
+        cell2.innerHTML = "<span>"+passwords[i].dlc+"</span>";
+        cell3.innerHTML = "<span class='editable password'>"+passwords[i].password+"</span>";
+        cell4.innerHTML = "<button class='btn btn-light eye'><i class='fas fa-eye'></i></button>";
+        cell5.innerHTML = "<button class='btn btn-light copy' data-clipboard-text='" + passwords[i].password + "'><i class='far fa-copy'></i></button>";
+        cell6.innerHTML = buttonGenerate;
+        cell7.innerHTML = buttonEdit;
+        cell8.innerHTML = buttonRemove;
+    }
+}
 
 
 
 //This is what the edit and remove buttons should look like
-var buttonEdit = "<button class='btn btn-light edit' data-toggle='tooltip' data-placement='bottom' title='Edit'><i class='far fa-edit'></i></button>";
-var buttonRemove = "<button class='btn btn-light delete' data-toggle='tooltip' data-placement='bottom' title='Delete'><i class='fas fa-trash-alt'></i></button>";
+var buttonEdit = "<button class='btn btn-light edit'><i class='far fa-edit'></i></button>";
+var buttonRemove = "<button class='btn btn-light delete'><i class='fas fa-trash-alt'></i></button>";
+var buttonGenerate = "<button class='btn btn-light generate' disabled><i class='fas fa-random'></i></button>";
 
 //This variable is used to keep track of which row the user is attempting to delete, so that when the user presses the trash icon
 //they can be asked to double check whether they wish to delete, and the deletion can then proceed correctly.
@@ -239,18 +260,28 @@ var rowBeingDeleted = null;
 
 //Do this when a user signs in
 var userId = null;
+var userEmail = null;
+var userPassword = null;
 firebase.auth().onAuthStateChanged(function(user) {
     if (user) {
         if (newUser === false){
         console.log("user signed in");
+        if (user.emailVerified !== true){
+            signOut();
+            alert("You need to verify your account via email before signing in.")
+            return;
+        }
+
+
         document.getElementById("signin").style.display='none';
         document.getElementById("firstScreen").style.display='none';
         document.getElementById("intro").style.display='none';
         $(".password-list-screen").css("display", "inline");
         $('body').css('background-image', '');
 
-        var name = user.displayName;
-        var email = user.email;
+        email = user.email;
+        console.log(userPassword);
+        console.log(user.password);
 
         
         var user = firebase.auth().currentUser;
@@ -282,56 +313,20 @@ firebase.auth().onAuthStateChanged(function(user) {
                 decrypt(docData.encrypted_data);
 
                 //For all password entries, display those
-                for (i = 0; i < passwords.length; i++){
-
-                    var table = document.getElementById('password_list');
-                    var row = table.insertRow(rowNumber);
-                    row.id = "row" + rowNumber;
-                    rowNumber++;
-                    var cell0 = row.insertCell(0);
-                    var cell1 = row.insertCell(1);
-                    var cell2 = row.insertCell(2);
-                    var cell3 = row.insertCell(3);
-                    var cell4 = row.insertCell(4);
-                    var cell5 = row.insertCell(5);
-                    var cell6 = row.insertCell(6);
-                    var cell7 = row.insertCell(7);
-                    var cell8 = row.insertCell(8);
-                    cell0.innerHTML = "<span class='editable'>"+passwords[i].name+"</span>";
-                    cell1.innerHTML = "<span class='editable'>"+passwords[i].website+"</span>";
-                    cell2.innerHTML = currentDate;
-                    cell3.innerHTML = "<span class='editable password'>"+passwords[i].password+"</span>";
-                    cell4.innerHTML = "<button class='btn btn-light eye'><i class='fas fa-eye'></i></button>";
-                    cell5.innerHTML = "<button class='btn btn-light copy' data-toggle='tooltip' data-trigger='focus' data-placement='bottom' title='Copied' data-clipboard-text='" + passwords[i].password + "'><i class='far fa-copy'></i></button>";
-                    cell6.innerHTML = "<button class='btn btn-light generate'><i class='fas fa-random'></i></button>";
-                    cell7.innerHTML = buttonEdit;
-                    cell8.innerHTML = buttonRemove;
-                    
-                    //row.appendChild(cell0);
-
-                    //cell0.setAttribute("class","editableField");
-
-
-                }
+                listPasswords();
                 
                 var clipboard = new ClipboardJS('.copy');
 
-                $("#current_date").html(currentDate);
+                $("#current_date").html(currentDate());
 
                 //Making the rows editable, one at a time
                 var rowEditing = false;
+                var currentlyEditingElement = null;
                 $("body").on("click", ".edit", function(){ 
                     if (rowEditing === true){
                         let lastEditedRow = $(".currentlyEditing").parent();
                         console.log(lastEditedRow);
-                        for (let i=0; i<3; i++){
-                            let currentCell = lastEditedRow[i];
-                            let cellValue = currentCell.firstChild.value;
-                            currentCell.innerHTML = "<span class='editable'>"+cellValue+"</span>";
-                            if (i===2){
-                                currentCell.innerHTML = "<span class='editable password'>"+cellValue+"</span>";
-                            }
-                            }
+                        
                     }   
                     console.log("Attemting to make row editable");
                     let editableRow = $(this).parent().parent();
@@ -347,8 +342,77 @@ firebase.auth().onAuthStateChanged(function(user) {
                             }
                         }
                     }
-                    rowEditing = true;                                               
+                    currentlyEditingElement = children[7];
+                    children[7].innerHTML = "<button class='btn btn-light save'><i class='far fa-save'></i></button><button class='btn btn-light undo'><i class='fas fa-undo'></i></button>";
+                    children[6].innerHTML = "<button class='btn btn-light generate'><i class='fas fa-random'></i></button>";
+
+                    $(".edit").attr("disabled", true);
+                    $(".copy").attr("disabled", true);
+                    rowEditing = true;
+                    console.log(editableRow);                                               
                 });
+
+                    $("body").on("click", ".save", function(){
+                    rowBeingDeleted = currentlyEditingElement;
+                    let i = rowBeingDeleted.parentNode.rowIndex;
+                    console.log(i);
+                    
+                    //Change the editable fields (inputs) to non-editable fields
+                    let lastEditedRow = $(".currentlyEditing").parent();
+                    for (let i=0; i<3; i++){
+                        let currentCell = lastEditedRow[i];
+                        let cellValue = currentCell.firstChild.value;
+                        currentCell.innerHTML = "<span class='editable'>"+cellValue+"</span>";
+                        if (i===2){
+                            currentCell.innerHTML = "<span class='editable password'>"+cellValue+"</span>";
+                        }
+                    }
+
+                    //Change the save button to an edit button
+                    let children = lastEditedRow.parent().children();
+                    children[7].innerHTML = "<button class='btn btn-light edit'><i class='far fa-edit'></i></button>";
+
+                    //Change the date-last-changed
+                    passwords[i-1].dlc = currentDate();
+                    children[2].innerHTML = "<span>"+currentDate()+"</span>";
+
+                    //Apply all changes to the database
+                    console.log(rowBeingDeleted);
+                    let tName = children[0].innerText;
+                    let tWebsite = children[1].innerText;
+                    let tPassword = children[3].innerText;
+                    
+                    passwords.splice(i-1,1);
+
+                    let entry = new passwordEntry(tName, tWebsite, tPassword);
+                    passwords.splice(i-1, 0, entry);
+
+                    encrypt();
+                    children[5].innerHTML = "<button class='btn btn-light copy' data-clipboard-text='" + passwords[i-1].password + "'><i class='far fa-copy'></i></button>";
+
+                    $(".edit").attr("disabled", false);
+                    $(".copy").attr("disabled", false);
+                    $(".generate").attr("disabled", true);
+                    $(".generate-special").attr("disabled", false);
+            });
+
+                //Undo any changes to the row by reloading the passwords
+                $("body").on("click", ".undo", function(){
+                    let tableBody = $("#password_list");
+                    let rows = tableBody.children();
+                    for (i=0; i<rows.length-1; i++){
+                        rows[i].remove();
+                        rowNumber--;
+                    }
+                    listPasswords();
+                })
+                $("body").on("click", ".add", function(){
+                    addEntry(document.getElementById('name01').value, document.getElementById('website01').value, document.getElementById('password01').value);
+                    console.log($(".bottom-row"));
+                    $(".bottom-row").prop("value", "");
+                    console.log("pass");
+                })
+
 
                 //Make passwords visible when hovering over eye icon
                 $("body").on("mouseenter", ".eye", function(){
@@ -365,14 +429,58 @@ firebase.auth().onAuthStateChanged(function(user) {
                 //Open are you sure screen when deleting passwords
                 $("body").on("click", ".delete", function(){
                     rowBeingDeleted = $(this).get(0);
+                    console.log(rowBeingDeleted);
+                    console.log($(this));
                     $("#delete_password").css("display", "block");
                 })
                      
                 //Randomly generate a new password
                 $("body").on("click", ".generate", function(){
                     var randomPass = generatePassword(16);
-                    $(this).parent().prev().prev().prev().children().html(randomPass);
+                    $(this).parent().prev().prev().prev().children().attr("value", randomPass);
+                    this.blur();
                 })
+
+                //Sign out button
+                $("body").on("click", ".sign-out", function(){
+                    signOut();
+                    location.reload();
+                })
+
+                //Change password
+                $("body").on("click", ".change-pass", function(){
+                    $("#change_password").css("display", "block");
+                })
+                $("body").on("click", "#button_change_password", function(){
+                    hideErrorsOnChangePass();
+                    var pwd = $('#new_pass').val();
+                    if ($('#old_pass').val() != userPassword){
+                        console.log($('#old_pass').val());
+                        console.log(userPassword);
+                        $("#error_old_pass").css("display","block")
+                        //alert("Old password is incorrect!");
+                        return
+                    }
+                    if (pwd !== $('#c_new_pass').val()){
+                        $("#error_match2").css("display","block")
+                        //alert("New passwords don't match!");
+                        return;
+                    } else if (pwd.length < 8) {
+                        $("#error_short2").css("display","block")
+                        //alert("Password is too short!");
+                        return;
+                    } else if (pwd.match(/\d/) === null){
+                        $("#error_number2").css("display","block")
+                        //alert("Password must include a number!");
+                        return;
+                    } else if (pwd.match(/\D/) === null) {
+                        $("#error_letter2").css("display","block")
+                        //alert("Password must include a letter");
+                        return;			
+                    }
+                })
+                
+                
                 
 
             } else {
@@ -388,6 +496,11 @@ firebase.auth().onAuthStateChanged(function(user) {
     } else {
         console.log("User successfully created");
 
+        user.sendEmailVerification().then(function() {
+        // Email sent.
+        }).catch(function(error) {
+        // An error happened.
+        });
 
         userId = user.uid;
         console.log(userId);
@@ -404,7 +517,7 @@ firebase.auth().onAuthStateChanged(function(user) {
             signOut();
             closeRegister();
             newUser = false;
-            alert('Thank you for creating an OnlyPass account. Please sign in.');
+            alert('Thank you for creating an OnlyPass account. Please verify your account by clicking on the link sent to you via email before signing in.');
         })
         .catch(function(error) {
             console.error("Error writing document: ", error);
@@ -445,6 +558,8 @@ $(document).ready(function() {
     var modalSignIn = document.getElementById('signin');
     //Get the ARE YOU SURE DELETE PASSWORD modal
     var modalDeletePass = document.getElementById('delete_password')
+    //Get the CHANGE PASSWORD modal
+    var modalChangePass = document.getElementById('change_password');
 
     // When the user clicks anywhere outside of the open modals, close them
     window.onclick = function(event) {
@@ -456,6 +571,8 @@ $(document).ready(function() {
             closeSignIn();
         } else if (event.target == modalDeletePass) {
             closeAreSure('delete_password');
+        } else if (event.target == modalChangePass) {
+            closeAreSure('change_password')
         }
     }
 });
@@ -468,16 +585,19 @@ var passwords = [];
 var rowNumber = 0;
 
 //Gets the date in yyyy-mm-dd format, and puts it into any new password entries
-var date = new Date();
-var currentMonth = date.getMonth() + 1;
-var currentDate = date.getFullYear() + "-" + currentMonth + "-" + date.getDate();
+function currentDate(){
+    var date = new Date();
+    var currentMonth = date.getMonth() + 1;
+    var currentDate = date.getFullYear() + "-" + currentMonth + "-" + date.getDate();
+    return currentDate;
+}
 
 class passwordEntry {
     constructor(name, website, password) {
         this.name = name;
         this.website = website;
         this.password = password;
-        this.dlc = currentDate;
+        this.dlc = currentDate();
     }
 }
 
@@ -487,6 +607,7 @@ function addEntry(name, website, password){
     var entry = new passwordEntry(name, website, password);
     passwords.push(entry);
     console.log(passwords);
+    encrypt();
 
     //frontend --> adds the new entry to the display
     var table = document.getElementById('password_list');
@@ -503,11 +624,11 @@ function addEntry(name, website, password){
     var cell8 = row.insertCell(8);
     cell0.innerHTML = "<span class='editable'>"+name+"</span>";
     cell1.innerHTML = "<span class='editable'>"+website+"</span>";
-    cell2.innerHTML = currentDate;
+    cell2.innerHTML = currentDate();
     cell3.innerHTML = "<span class='editable password'>"+password+"</span>";
     cell4.innerHTML = "<button class='btn btn-light eye'><i class='fas fa-eye'></i></button>";
     cell5.innerHTML = "<button class='btn btn-light copy' data-clipboard-text='" + password + "'><i class='far fa-copy'></i></button>";
-    cell6.innerHTML = "<button class='btn btn-light generate'><i class='fas fa-random'></i></button>";
+    cell6.innerHTML = buttonGenerate;
     cell7.innerHTML = buttonEdit;
     cell8.innerHTML = buttonRemove;
 }
@@ -517,7 +638,7 @@ function deleteEntry(r){
     passwords.splice(i-1,1);
     document.getElementById('password_table').deleteRow(i);
     rowNumber--;
-    console.log(passwords);
+    encrypt();
 
 }
 
@@ -542,6 +663,18 @@ var stringPasswords = "";
 
 
 
+//New scrypt attempt: https://github.com/tonyg/js-scrypt
+function getKey(){
+    let returnVal = null;
+    scrypt_module_factory(function (scrypt) {
+    
+        var keyBytes = scrypt.crypto_scrypt(scrypt.encode_utf8(userPassword), scrypt.encode_utf8(userEmail), 16384, 8, 1, 16)
+        console.log(keyBytes);
+        returnVal = keyBytes;
+    });
+    return returnVal;
+}
+
 
 
 //encrypts the plaintext
@@ -550,8 +683,11 @@ function encrypt() {
     //convert password objects in the array to a string
     stringifyPasswords();
 
+    
+
     // An example 128-bit key (16 bytes * 8 bits/byte = 128 bits)
-    var key = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 ];
+    var key = getKey();
+    console.log(key);
 
     // Convert text to bytes
     var text = stringPasswords;
@@ -595,7 +731,8 @@ function encrypt() {
 
 //decrypts into plaintext
 function decrypt(input){
-    var key = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 ];
+    var key = getKey();
+    console.log(key);
     var encryptedBytes = aesjs.utils.hex.toBytes(input);
     
     // The counter mode of operation maintains internal state, so to
@@ -613,22 +750,4 @@ function decrypt(input){
     parsePasswords(decryptedText);
 }
 
-
-var saveStatus = $('#save_status');
-var timeoutId;
-
-$(".editableField").keypress(function () {
-    console.log("key pressed");
-    saveStatus.attr('class', 'pending').text('Changes pending');
-    
-    // If a timer was already started, clear it.
-    if (timeoutId) clearTimeout(timeoutId);
-    
-    // Set timer that will save comment when it fires.
-    timeoutId = setTimeout(function () {
-        // Make ajax call to save data.
-        encrypt();
-        saveStatus.attr('class', 'saved').text('Changes saved');
-    }, 750);
-});
 
