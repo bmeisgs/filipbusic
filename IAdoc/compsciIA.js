@@ -54,6 +54,7 @@ function hideErrorsOnRegister(){
 }
 
 function hideErrorsOnChangePass(){
+    $("#error_old_pass").css('display','none');
     $("#error_short2").css('display','none');
     $("#error_match2").css('display','none');
     $("#error_number2").css('display','none');
@@ -112,14 +113,16 @@ function createUser(){
     
 var signInOpen = false;
 
+var userPassword = null;
+
 //Sign in an existing user
 function signIn(){
     signInOpen = false;
     $("#error_incor").css('display','none');
     var email = $("#email").val();
-    var pwd = $("#pwd").val();
-    console.log("trying to log in",email,pwd);
-    firebase.auth().signInWithEmailAndPassword(email, pwd).catch(function(error) {
+    userPassword = $("#pwd").val();
+    console.log("trying to log in",email, userPassword);
+    firebase.auth().signInWithEmailAndPassword(email, userPassword).catch(function(error) {
         // Handle Errors here.
         //alert("Incorrect username or password");
         signInOpen = true;
@@ -261,7 +264,6 @@ var rowBeingDeleted = null;
 //Do this when a user signs in
 var userId = null;
 var userEmail = null;
-var userPassword = null;
 firebase.auth().onAuthStateChanged(function(user) {
     if (user) {
         if (newUser === false){
@@ -280,8 +282,6 @@ firebase.auth().onAuthStateChanged(function(user) {
         $('body').css('background-image', '');
 
         email = user.email;
-        console.log(userPassword);
-        console.log(user.password);
 
         
         var user = firebase.auth().currentUser;
@@ -460,11 +460,6 @@ firebase.auth().onAuthStateChanged(function(user) {
                         $("#error_old_pass").css("display","block")
                         //alert("Old password is incorrect!");
                         return
-                    }
-                    if (pwd !== $('#c_new_pass').val()){
-                        $("#error_match2").css("display","block")
-                        //alert("New passwords don't match!");
-                        return;
                     } else if (pwd.length < 8) {
                         $("#error_short2").css("display","block")
                         //alert("Password is too short!");
@@ -477,7 +472,20 @@ firebase.auth().onAuthStateChanged(function(user) {
                         $("#error_letter2").css("display","block")
                         //alert("Password must include a letter");
                         return;			
+                    } else if (pwd !== $('#c_new_pass').val()){
+                        $("#error_match2").css("display","block")
+                        //alert("New passwords don't match!");
+                        return;
                     }
+                    console.log(user);
+                    console.log(pwd);
+                    user.updatePassword(pwd).then(function() {
+                        // Update successful.
+                    }).catch(function(error) {
+                        // An error happened.
+                    });
+                    encrypt();
+                      
                 })
                 
                 
@@ -664,11 +672,12 @@ var stringPasswords = "";
 
 
 //New scrypt attempt: https://github.com/tonyg/js-scrypt
-function getKey(){
+function getKey(password){
     let returnVal = null;
     scrypt_module_factory(function (scrypt) {
     
-        var keyBytes = scrypt.crypto_scrypt(scrypt.encode_utf8(userPassword), scrypt.encode_utf8(userEmail), 16384, 8, 1, 16)
+        console.log(password);
+        var keyBytes = scrypt.crypto_scrypt(scrypt.encode_utf8(password), scrypt.encode_utf8(userEmail), 16384, 8, 1, 16)
         console.log(keyBytes);
         returnVal = keyBytes;
     });
@@ -686,7 +695,7 @@ function encrypt() {
     
 
     // An example 128-bit key (16 bytes * 8 bits/byte = 128 bits)
-    var key = getKey();
+    var key = getKey(userPassword);
     console.log(key);
 
     // Convert text to bytes
@@ -731,7 +740,7 @@ function encrypt() {
 
 //decrypts into plaintext
 function decrypt(input){
-    var key = getKey();
+    var key = getKey("testpassword4");
     console.log(key);
     var encryptedBytes = aesjs.utils.hex.toBytes(input);
     
