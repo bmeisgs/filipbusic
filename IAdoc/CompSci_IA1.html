@@ -74,23 +74,20 @@
 			<br>
 			<div class="container">
 				<div class="form-group">
+				<br>
 				<label for="email">Email address:</label>
 				<input type="email" class="form-control" id="email2" required>
 				</div>
 				<div class="form-group">
 				<label for="pwd">Password:</label>
-				<input type="password" class="form-control" id="pwd2" required data-toggle="popover" trigger="focus" data-placement="top" data-html="true" title="Password requirements" data-content="
-				The password must: <br> - Be at least 8 characters long <br> - Contain at least one letter <br> - Contain at least one number">
+				<input type="password" class="form-control password-req" id="pwd2" required>
 				</div>
 				<div class="form-group">
 				<label for="pwd">Confirm password:</label>
 				<input type="password" class="form-control" id="cpwd" required>
 				</div>
 				<div class="checkbox">
-				<label><input type="checkbox" id="terms"> I have read the Terms and Conditions and agree to them.</label>
-				</div>
-				<div class="checkbox">
-				<label><input type="checkbox"> You may send me occasional promotional material.</label>
+				<label><input type="checkbox" id="terms"> I have read the <a href="onlypass_terms_v2.pdf" target="_blank">Terms and Conditions</a> and agree to them.</label>
 				</div>
 				<div class="error" id="error_match">Passwords don't match</div>
 				<div class="error" id="error_short">Password is too short</div>
@@ -127,9 +124,6 @@
 				<div class="form-group">
 					<label for="pwd">Password:</label>
 					<input type="password" class="form-control" id="pwd" required>
-				</div>
-				<div class="checkbox">
-					<label><input type="checkbox"> Remember me</label>
 				</div>
 				<div class="error" id="error_incor">Incorrect username or password</div>
 				<br>			
@@ -211,16 +205,16 @@
 				<br>
 				<div class="form-group">
 					<label>Current password:</label>
-					<input type="password" class="form-control" id="old_pass" required>
+					<input type="password" class="form-control" id="old_pass" required autocomplete="off">
 				</div>
 				<div class="form-group">
 					<label for="pwd">New password:</label>
-					<input type="password" class="form-control" id="new_pass" required data-toggle="popover" trigger="focus" data-placement="top" data-html="true" title="Password requirements" data-content="
+					<input type="password" class="form-control password-req" id="new_pass" required autocomplete="off" trigger="focus" data-placement="top" data-html="true" title="Password requirements" data-content="
 					The password must: <br> - Be at least 8 characters long <br> - Contain at least one letter <br> - Contain at least one number">
 				</div>
 				<div class="form-group">
 					<label for="pwd">Confirm new password:</label>
-					<input type="password" class="form-control" id="c_new_pass" required>
+					<input type="password" class="form-control" id="c_new_pass" required autocomplete="off">
 				</div>
 				<div class="error" id="error_old_pass">Old password is incorrect</div>
 				<div class="error" id="error_match2">New passwords don't match</div>
@@ -230,13 +224,11 @@
 				<br><br>
 			</div>
 			<br>
-
-		<div style="background-color:#f1f1f1; padding: 16px;">
-		  <button type="button" onclick="closeAreSure('change_password');" class="btn btn-primary">Cancel</button>
-		  <button type="button" style="float:right" class="btn btn-success" id="button_change_password">Change</button> 
-		</div>
-		
-	  </form>
+			<div style="background-color:#f1f1f1; padding: 16px;">
+			<button type="button" id="button_change_cancel" class="btn btn-primary">Cancel</button>
+			<button type="button" style="float:right" class="btn btn-success" id="button_change_password">Change</button> 
+			</div>
+	  	</form>
 	</div>	
 
 </body>
