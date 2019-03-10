@@ -34,7 +34,7 @@
     // Initialize Cloud Firestore through Firebase
     var db = firebase.firestore();
 
-    // Disable deprecated features
+    // Disable deprecated features of Firebase
     db.settings({
         timestampsInSnapshots: true
     });
@@ -63,10 +63,25 @@
         $("#error_letter2").css('display','none');
     }
 
+    
+// -- § DECLARE GLOBAL VARIABLES (so that they can be used in different functions) -- //
+
+    //Keeps track of whether the user attempting to sign in is new
     var newUser = false;
+    //Keeps track of whether the Sign In popup is open
+    var signInOpen = false;
+    //Creates the array in which the passwords and their corresponding websites will be stored
+    var passwords = [];
+    //Counts the number of rows in the passwords table (needed to know which position to add new rows to)
+    var rowNumber = 0;
+    //This variable is used to keep track of which row the user is attempting to delete, so that when the user presses the trash icon
+    //they can be asked to double check whether they wish to delete, and the deletion can then proceed correctly.
+    var rowBeingDeleted = null;
+    //Lets the user's id, email, and password be accessed outside of the function where it will be defined
+    var userId = null;
+    var userEmail = null;
+    var userPassword = null;
 
-
-/* FIRST SCREEN */
 
 // -- § CREATE A USER -- //
     
@@ -95,9 +110,6 @@
             //alert("You must accept the Terms and Conditions!");
             return;
         }
-        console.log($('#terms'));
-
-        
 
         console.log("trying to create user");
         newUser = true;
@@ -119,10 +131,6 @@
 
     
 // -- § SIGN IN AN EXISTING USER -- //    
-
-    var signInOpen = false;
-
-    var userPassword = null;
 
     //Sign in an existing user
     function signIn(){
@@ -183,8 +191,6 @@
     });
 
 
-/* SECOND SCREEN */
-
 // -- § CLOSE MODALS -- //
 
     function closeSignIn(){
@@ -236,37 +242,15 @@
         }
     });
 
-    
-// -- § END FUNCTIONS -- //
-
-    //Sign the user out
-    function signOut(){
-        firebase.auth().signOut().then(function() {
-        // Sign-out successful.
-        }).catch(function(error) {
-        // An error happened.
-        });
-    }
-
-    //Ask the user if they want to leave without saving changes
-    window.addEventListener("beforeunload", function(event) {
-        if ($(".save").length > 0){
-            event.preventDefault();
-        }
-    });
-
 
 // -- § SECOND SCREEN FUNCTIONS -- //
 
-    //Function to generate a random password
-    function generatePassword(length) {
-        var password = '', character; 
-        while (length > password.length) {
-            if (password.indexOf(character = String.fromCharCode(Math.floor(Math.random() * 94) + 33), Math.floor(password.length / 94) * 94) < 0) {
-                password += character;
-            }
-        }
-        return password;
+    //Gets the date in yyyy-mm-dd format
+    function currentDate(){
+        var date = new Date();
+        var currentMonth = date.getMonth() + 1;
+        var currentDate = date.getFullYear() + "-" + currentMonth + "-" + date.getDate();
+        return currentDate;
     }
 
     //This is what the edit and remove buttons should look like
@@ -274,6 +258,7 @@
     var buttonRemove = "<button class='btn btn-light delete'><i class='fas fa-trash-alt'></i></button>";
     var buttonGenerate = "<button class='btn btn-light generate' disabled><i class='fas fa-random'></i></button>";
     
+    //Display all the passwords from the passwords array in a table
     function listPasswords(){
         for (i = 0; i < passwords.length; i++){
             var table = document.getElementById('password_list');
@@ -301,17 +286,91 @@
         }
     }
 
+    //Function to generate a random password
+    function generatePassword(length) {
+        var password = '', character; 
+        while (length > password.length) {
+            if (password.indexOf(character = String.fromCharCode(Math.floor(Math.random() * 94) + 33), Math.floor(password.length / 94) * 94) < 0) {
+                password += character;
+            }
+        }
+        return password;
+    }
 
-    //This variable is used to keep track of which row the user is attempting to delete, so that when the user presses the trash icon
-    //they can be asked to double check whether they wish to delete, and the deletion can then proceed correctly.
-    var rowBeingDeleted = null;
+    //Template for a new password entry
+    class passwordEntry {
+        constructor(name, website, password) {
+            this.name = name;
+            this.website = website;
+            this.password = password;
+            this.dlc = currentDate();
+        }
+    }
+
+    //Function to add a password
+    function addEntry(name, website, password){
+            
+        //backend --> adds the new entry to the array that is encrypted and stored
+        var entry = new passwordEntry(name, website, password);
+        passwords.push(entry);
+        console.log(passwords);
+        encrypt();
+
+        //frontend --> adds the new entry to the display
+        var table = document.getElementById('password_list');
+        var row = table.insertRow(rowNumber);
+        rowNumber++;
+        var cell0 = row.insertCell(0);
+        var cell1 = row.insertCell(1);
+        var cell2 = row.insertCell(2);
+        var cell3 = row.insertCell(3);
+        var cell4 = row.insertCell(4);
+        var cell5 = row.insertCell(5);
+        var cell6 = row.insertCell(6);
+        var cell7 = row.insertCell(7);
+        var cell8 = row.insertCell(8);
+        cell0.innerHTML = "<span class='editable'>"+name+"</span>";
+        cell1.innerHTML = "<span class='editable'>"+website+"</span>";
+        cell2.innerHTML = currentDate();
+        cell3.innerHTML = "<span class='editable password'>"+password+"</span>";
+        cell4.innerHTML = "<button class='btn btn-light eye'><i class='fas fa-eye'></i></button>";
+        cell5.innerHTML = "<button class='btn btn-light copy' data-clipboard-text='" + password + "'><i class='far fa-copy'></i></button>";
+        cell6.innerHTML = buttonGenerate;
+        cell7.innerHTML = buttonEdit;
+        cell8.innerHTML = buttonRemove;
+    }
+
+    //Function to delete a password
+    function deleteEntry(r){
+        var i = r.parentNode.parentNode.rowIndex;
+        passwords.splice(i-1,1);
+        document.getElementById('password_table').deleteRow(i);
+        rowNumber--;
+        encrypt();
+    }
+    
+
+// -- § END FUNCTIONS -- //
+
+    //Sign the user out
+    function signOut(){
+        firebase.auth().signOut().then(function() {
+        // Sign-out successful.
+        }).catch(function(error) {
+        // An error happened.
+        });
+    }
+
+    //Ask the user if they want to leave without saving changes
+    window.addEventListener("beforeunload", function(event) {
+        if ($(".save").length > 0){
+            event.preventDefault();
+        }
+    });
 
 
 // -- § RUN UPON SIGN-IN -- //
 
-    //Do this when a user signs in
-    var userId = null;
-    var userEmail = null;
     firebase.auth().onAuthStateChanged(function(user) {
         if (user) {
             if (newUser === false){
@@ -593,96 +652,12 @@
     });
 
 
-//PASSWORD LIST PART
-var passwords = [];
-
-//A variable that counts the number of rows (needed to know which position to add new rows to)
-var rowNumber = 0;
-
-//Gets the date in yyyy-mm-dd format, and puts it into any new password entries
-function currentDate(){
-    var date = new Date();
-    var currentMonth = date.getMonth() + 1;
-    var currentDate = date.getFullYear() + "-" + currentMonth + "-" + date.getDate();
-    return currentDate;
-}
-
-class passwordEntry {
-    constructor(name, website, password) {
-        this.name = name;
-        this.website = website;
-        this.password = password;
-        this.dlc = currentDate();
-    }
-}
-
-function addEntry(name, website, password){
-        
-    //backend --> adds the new entry to the array that is encrypted and stored
-    var entry = new passwordEntry(name, website, password);
-    passwords.push(entry);
-    console.log(passwords);
-    encrypt();
-
-    //frontend --> adds the new entry to the display
-    var table = document.getElementById('password_list');
-    var row = table.insertRow(rowNumber);
-    rowNumber++;
-    var cell0 = row.insertCell(0);
-    var cell1 = row.insertCell(1);
-    var cell2 = row.insertCell(2);
-    var cell3 = row.insertCell(3);
-    var cell4 = row.insertCell(4);
-    var cell5 = row.insertCell(5);
-    var cell6 = row.insertCell(6);
-    var cell7 = row.insertCell(7);
-    var cell8 = row.insertCell(8);
-    cell0.innerHTML = "<span class='editable'>"+name+"</span>";
-    cell1.innerHTML = "<span class='editable'>"+website+"</span>";
-    cell2.innerHTML = currentDate();
-    cell3.innerHTML = "<span class='editable password'>"+password+"</span>";
-    cell4.innerHTML = "<button class='btn btn-light eye'><i class='fas fa-eye'></i></button>";
-    cell5.innerHTML = "<button class='btn btn-light copy' data-clipboard-text='" + password + "'><i class='far fa-copy'></i></button>";
-    cell6.innerHTML = buttonGenerate;
-    cell7.innerHTML = buttonEdit;
-    cell8.innerHTML = buttonRemove;
-}
-
-function deleteEntry(r){
-    var i = r.parentNode.parentNode.rowIndex;
-    passwords.splice(i-1,1);
-    document.getElementById('password_table').deleteRow(i);
-    rowNumber--;
-    encrypt();
-
-}
-
-
-function editEntry(row){
-    var table = document.getElementById('password_list');
-    var row = table
-}
-
-var stringPasswords = "";
-    
-    function stringifyPasswords(){
-        stringPasswords = JSON.stringify(passwords);
-        console.log(stringPasswords);
-    }
-    
-    function parsePasswords(stringPass){
-        passwords = JSON.parse(stringPass);
-        console.log(passwords);
-    }
-
-
 // -- § GET AN ENCRYPTION KEY FROM USER PASSWORD -- //
 
     //New scrypt: https://github.com/tonyg/js-scrypt
     function getKey(password){
         let returnVal = null;
         scrypt_module_factory(function (scrypt) {
-        
             console.log(password);
             var keyBytes = scrypt.crypto_scrypt(scrypt.encode_utf8(password), scrypt.encode_utf8(userEmail), 16384, 8, 1, 16)
             console.log(keyBytes);
@@ -694,18 +669,17 @@ var stringPasswords = "";
 
 // -- § ENCRYPTION AND DECRYPTION -- //
 
-    //encrypts the plaintext
+    // Encrypts the plaintext
     function encrypt() {
-
-        //convert password objects in the array to a string
-        stringifyPasswords();
 
         // An example 128-bit key (16 bytes * 8 bits/byte = 128 bits)
         var key = getKey(userPassword);
         console.log(key);
 
+        // Convert password objects in the array to a string
+        var text = JSON.stringify(passwords);
+
         // Convert text to bytes
-        var text = stringPasswords;
         var textBytes = aesjs.utils.utf8.toBytes(text);
 
         // The counter is optional, and if omitted will begin at 1
@@ -740,7 +714,7 @@ var stringPasswords = "";
 
     }
 
-    //decrypts into plaintext
+    // Decrypts into plaintext
     function decrypt(input){
         var key = getKey(userPassword);
         console.log(key);
@@ -754,11 +728,7 @@ var stringPasswords = "";
         // Convert our bytes back into text
         var decryptedText = aesjs.utils.utf8.fromBytes(decryptedBytes);
         console.log(decryptedText);
-        // "Text may be any length you wish, no padding is required."
-        //document.getElementById('decrypted_text').innerHTML=decryptedText;
 
-        //convert string to an array with password objects
-        parsePasswords(decryptedText);
+        // Convert decrypted string to an array with password objects and make the passwords array equal to it
+        passwords = JSON.parse(decryptedText);
     }
-
-
