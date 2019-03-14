@@ -152,7 +152,7 @@
     }
 
 
-// -- § OPEN SIGN IN AND REGISTER POPUPS -- //
+// -- § OPEN SIGN IN MODAL -- //
 
     function openSignIn(){
         document.getElementById('signin').style.display='block';
@@ -381,7 +381,6 @@
                 return;
             }
 
-
             document.getElementById("signin").style.display='none';
             document.getElementById("firstScreen").style.display='none';
             document.getElementById("intro").style.display='none';
@@ -390,7 +389,6 @@
 
             email = user.email;
 
-            
             var user = firebase.auth().currentUser;
             userId = user.uid;
             console.log(userId);
@@ -459,7 +457,7 @@
                         console.log(editableRow);                                               
                     });
 
-                        $("body").on("click", ".save", function(){
+                    $("body").on("click", ".save", function(){
                         rowBeingDeleted = currentlyEditingElement;
                         let i = rowBeingDeleted.parentNode.rowIndex;
                         console.log(i);
@@ -502,7 +500,7 @@
                         $(".copy").attr("disabled", false);
                         $(".generate").attr("disabled", true);
                         $(".generate-special").attr("disabled", false);
-                });
+                    });
 
                     //Undo any changes to the row by reloading the passwords
                     $("body").on("click", ".undo", function(){
@@ -514,6 +512,7 @@
                         }
                         listPasswords();
                     })
+
                     $("body").on("click", ".add", function(){
                         addEntry(document.getElementById('name01').value, document.getElementById('website01').value, document.getElementById('password01').value);
                         console.log($(".bottom-row"));
@@ -658,9 +657,7 @@
     function getKey(password){
         let returnVal = null;
         scrypt_module_factory(function (scrypt) {
-            console.log(password);
             var keyBytes = scrypt.crypto_scrypt(scrypt.encode_utf8(password), scrypt.encode_utf8(userEmail), 16384, 8, 1, 16)
-            console.log(keyBytes);
             returnVal = keyBytes;
         });
         return returnVal;
@@ -672,9 +669,8 @@
     // Encrypts the plaintext
     function encrypt() {
 
-        // An example 128-bit key (16 bytes * 8 bits/byte = 128 bits)
+        // Get an encryption key
         var key = getKey(userPassword);
-        console.log(key);
 
         // Convert password objects in the array to a string
         var text = JSON.stringify(passwords);
@@ -717,7 +713,6 @@
     // Decrypts into plaintext
     function decrypt(input){
         var key = getKey(userPassword);
-        console.log(key);
         var encryptedBytes = aesjs.utils.hex.toBytes(input);
         
         // The counter mode of operation maintains internal state, so to
@@ -727,7 +722,6 @@
 
         // Convert our bytes back into text
         var decryptedText = aesjs.utils.utf8.fromBytes(decryptedBytes);
-        console.log(decryptedText);
 
         // Convert decrypted string to an array with password objects and make the passwords array equal to it
         passwords = JSON.parse(decryptedText);
